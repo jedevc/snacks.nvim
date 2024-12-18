@@ -27,6 +27,7 @@ local defaults = {
   end,
   ---@type "repo" | "branch" | "file" | "commit"
   what = "file", -- what to open. not all remotes support all types
+  abbrev = true, -- whether to abbreviate the ref
   branch = nil, ---@type string?
   line_start = nil, ---@type number?
   line_end = nil, ---@type number?
@@ -145,8 +146,11 @@ function M._open(opts)
   local is_commit = is_valid_commit_hash(word, cwd)
   ---@type snacks.gitbrowse.Fields
   local fields = {
-    branch = opts.branch
-      or system({ "git", "-C", cwd, "rev-parse", "--abbrev-ref", "HEAD" }, "Failed to get current branch")[1],
+    branch = opts.branch or system(
+      opts.abbrev and { "git", "-C", cwd, "rev-parse", "--abbrev-ref", "HEAD" }
+        or { "git", "-C", cwd, "rev-parse", "HEAD" },
+      "Failed to get current branch"
+    )[1],
     file = file and system({ "git", "-C", cwd, "ls-files", "--full-name", file }, "Failed to get git file path")[1],
     line_start = opts.line_start,
     line_end = opts.line_end,
